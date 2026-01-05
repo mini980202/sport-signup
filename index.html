@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>運動課程報名系統（期末成品）</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:#fff;--ink:#0b1220;--muted:#516072;--brand:#0b1220;
+  --line:#e6e9f2;--ok:#14532d;--okbg:#f0fdf4;--okbd:#bbf7d0;
+  --bad:#7f1d1d;--badbg:#fef2f2;--badbd:#fecaca;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:10}
+.nav{max-width:1120px;margin:auto;padding:14px 16px;display:flex;gap:14px;align-items:center}
+.nav a{text-decoration:none;color:var(--ink);font-weight:800}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 12px;cursor:pointer;font-weight:800}
+.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.ghost{background:#f3f4f6}
+.container{max-width:1120px;margin:24px auto;padding:0 16px}
+.hero{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#0b1220}
+.hero img{width:100%;display:block}
+h1,h2,h3{margin:0 0 10px}
+p{margin:0 0 12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.card img{width:100%;display:block}
+.card .p{padding:14px}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-weight:900;font-size:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;margin:10px 0 6px;font-size:12px;color:var(--muted);font-weight:800}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;font-size:14px;background:#fff}
+.small{font-size:12px;color:var(--muted)}
+.alert{padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.alert.ok{border-color:var(--okbd);background:var(--okbg);color:var(--ok)}
+.alert.bad{border-color:var(--badbd);background:var(--badbg);color:var(--bad)}
+.table{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+.hidden{display:none}
+footer{padding:22px;text-align:center;color:var(--muted)}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.kpi .box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+.kpi .n{font-size:22px;font-weight:900}
+.kpi .t{font-size:12px;color:var(--muted);font-weight:800}
+@media(max-width:940px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.kpi{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="#" onclick="go('home')">首頁</a>
+    <a href="#" onclick="go('courses')">課程</a>
+    <a href="#" onclick="go('booking')">報名</a>
+    <a href="#" onclick="go('my')">報名結果</a>
+    <a href="#" onclick="go('admin')">後台</a>
+    <span class="spacer"></span>
+    <button class="btn" onclick="setLang('zh')">中</button>
+    <button class="btn" onclick="setLang('en')">EN</button>
+    <button class="btn ghost" onclick="resetAll()">清除資料</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <section id="home">
+    <div class="hero"><img alt="hero" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNDAwJyBoZWlnaHQ9JzQ4MCc+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9J2cnIHgxPScwJyB5MT0nMCcgeDI9JzEnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJScgc3RvcC1jb2xvcj0nIzBiMTIyMCcvPgo8c3RvcCBvZmZzZXQ9JzU1JScgc3RvcC1jb2xvcj0nIzFmMmE0NCcvPgo8c3RvcCBvZmZzZXQ9JzEwMCUnIHN0b3AtY29sb3I9JyMwYjEyMjAnLz4KPC9saW5lYXJHcmFkaWVudD4KPGZpbHRlciBpZD0nYmx1cicgeD0nLTIwJScgeT0nLTIwJScgd2lkdGg9JzE0MCUnIGhlaWdodD0nMTQwJSc+CjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249JzE4Jy8+CjwvZmlsdGVyPgo8L2RlZnM+CjxyZWN0IHdpZHRoPScxNDAwJyBoZWlnaHQ9JzQ4MCcgZmlsbD0ndXJsKCNnKScvPgo8Y2lyY2xlIGN4PScxMTUwJyBjeT0nMTIwJyByPScxMjAnIGZpbGw9JyM2MGE1ZmEnIG9wYWNpdHk9JzAuMzUnIGZpbHRlcj0ndXJsKCNibHVyKScvPgo8Y2lyY2xlIGN4PScxMDYwJyBjeT0nMjYwJyByPScxNTAnIGZpbGw9JyNhNzhiZmEnIG9wYWNpdHk9JzAuMjgnIGZpbHRlcj0ndXJsKCNibHVyKScvPgo8Y2lyY2xlIGN4PScxMjMwJyBjeT0nMzAwJyByPScxNjAnIGZpbGw9JyMzNGQzOTknIG9wYWNpdHk9JzAuMjInIGZpbHRlcj0ndXJsKCNibHVyKScvPgo8dGV4dCB4PSc3MCcgeT0nMjEwJyBmaWxsPSd3aGl0ZScgZm9udC1zaXplPSc3MCcgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXdlaWdodD0nODAwJz5TcG9ydCBDb3Vyc2UgQm9va2luZzwvdGV4dD4KPHRleHQgeD0nNzAnIHk9JzI5NScgZmlsbD0nI2NiZDVlMScgZm9udC1zaXplPSczMCcgZm9udC1mYW1pbHk9J0FyaWFsJz5CaWxpbmd1YWwg4oCiIENvdXJzZXMg4oCiIEJvb2tpbmcg4oCiIEFkbWluPC90ZXh0Pgo8cmVjdCB4PSc3MCcgeT0nMzMwJyB3aWR0aD0nMzYwJyBoZWlnaHQ9JzUwJyByeD0nMjUnIGZpbGw9J3doaXRlJyBvcGFjaXR5PScwLjE0Jy8+Cjx0ZXh0IHg9JzkyJyB5PSczNjUnIGZpbGw9JyNlNWU3ZWInIGZvbnQtc2l6ZT0nMjAnIGZvbnQtZmFtaWx5PSdBcmlhbCc+T25seSBHbWFpbCBhbGxvd2VkPC90ZXh0Pgo8L3N2Zz4="></div>
+    <div style="margin-top:16px">
+      <span class="badge" id="badge">只允許 Gmail 報名</span>
+      <h1 id="title">運動課程報名系統</h1>
+      <p id="sub">填寫基本資料完成報名；成功後僅顯示「姓名與電話」</p>
+    </div>
+  </section>
+
+  <section id="courses" class="hidden">
+    <h2 id="cTitle">熱門課程</h2>
+    <p id="cSub">請到「報名」頁填寫資料；Email 必須為 @gmail.com</p>
+    <div class="grid">
+      <div class="card">
+        <img alt="Yoga" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc5MDAnIGhlaWdodD0nNTIwJz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0nYzEnIHgxPScwJyB5MT0nMCcgeDI9JzEnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJScgc3RvcC1jb2xvcj0nI2UwZjJmZScvPgo8c3RvcCBvZmZzZXQ9JzEwMCUnIHN0b3AtY29sb3I9JyNlZWYyZmYnLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0nOTAwJyBoZWlnaHQ9JzUyMCcgcng9JzMwJyBmaWxsPSd1cmwoI2MxKScvPgo8Y2lyY2xlIGN4PScyMjAnIGN5PScyMTAnIHI9JzE0MCcgZmlsbD0nIzkzYzVmZCcvPgo8cmVjdCB4PSczNjAnIHk9JzE0MCcgd2lkdGg9JzQyMCcgaGVpZ2h0PSczOCcgcng9JzE5JyBmaWxsPScjYzdkMmZlJy8+CjxyZWN0IHg9JzM2MCcgeT0nMjEwJyB3aWR0aD0nMzQwJyBoZWlnaHQ9JzI4JyByeD0nMTQnIGZpbGw9JyNiZmRiZmUnLz4KPHJlY3QgeD0nMzYwJyB5PScyNjAnIHdpZHRoPScyODAnIGhlaWdodD0nMjgnIHJ4PScxNCcgZmlsbD0nI2JmZGJmZScvPgo8cmVjdCB4PScxNDAnIHk9JzM5MCcgd2lkdGg9JzYyMCcgaGVpZ2h0PSc0MCcgcng9JzIwJyBmaWxsPScjYTViNGZjJyBvcGFjaXR5PScwLjcnLz4KPC9zdmc+">
+        <div class="p">
+          <h3 id="y1">瑜珈 Yoga</h3>
+          <p class="small" id="y1s">伸展與核心｜每週二、四 19:00</p>
+          <button class="btn primary" onclick="quickPick('Yoga')"><span id="b1">我要報名</span></button>
+        </div>
+      </div>
+      <div class="card">
+        <img alt="Boxing" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc5MDAnIGhlaWdodD0nNTIwJz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0nYzInIHgxPScwJyB5MT0nMCcgeDI9JzEnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJScgc3RvcC1jb2xvcj0nI2RjZmNlNycvPgo8c3RvcCBvZmZzZXQ9JzEwMCUnIHN0b3AtY29sb3I9JyNmMGZkZjQnLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0nOTAwJyBoZWlnaHQ9JzUyMCcgcng9JzMwJyBmaWxsPSd1cmwoI2MyKScvPgo8Y2lyY2xlIGN4PSc2NjAnIGN5PScyMTAnIHI9JzE1MCcgZmlsbD0nIzM0ZDM5OScgb3BhY2l0eT0nMC43NScvPgo8cmVjdCB4PScxMjAnIHk9JzE1MCcgd2lkdGg9JzQyMCcgaGVpZ2h0PSczOCcgcng9JzE5JyBmaWxsPScjYmJmN2QwJy8+CjxyZWN0IHg9JzEyMCcgeT0nMjIwJyB3aWR0aD0nMzYwJyBoZWlnaHQ9JzI4JyByeD0nMTQnIGZpbGw9JyM4NmVmYWMnLz4KPHJlY3QgeD0nMTIwJyB5PScyNzAnIHdpZHRoPSczMDAnIGhlaWdodD0nMjgnIHJ4PScxNCcgZmlsbD0nIzg2ZWZhYycvPgo8cmVjdCB4PScxNDAnIHk9JzM5MCcgd2lkdGg9JzYyMCcgaGVpZ2h0PSc0MCcgcng9JzIwJyBmaWxsPScjMjJjNTVlJyBvcGFjaXR5PScwLjI1Jy8+Cjwvc3ZnPg==">
+        <div class="p">
+          <h3 id="y2">拳擊 Boxing</h3>
+          <p class="small" id="y2s">燃脂訓練｜每週一、三 20:00</p>
+          <button class="btn primary" onclick="quickPick('Boxing')"><span id="b2">我要報名</span></button>
+        </div>
+      </div>
+      <div class="card">
+        <img alt="Dance" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc5MDAnIGhlaWdodD0nNTIwJz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0nYzMnIHgxPScwJyB5MT0nMCcgeDI9JzEnIHkyPScxJz4KPHN0b3Agb2Zmc2V0PScwJScgc3RvcC1jb2xvcj0nI2ZmZTRlNicvPgo8c3RvcCBvZmZzZXQ9JzEwMCUnIHN0b3AtY29sb3I9JyNmZmY3ZWQnLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0nOTAwJyBoZWlnaHQ9JzUyMCcgcng9JzMwJyBmaWxsPSd1cmwoI2MzKScvPgo8Y2lyY2xlIGN4PScyNjAnIGN5PScyMzAnIHI9JzE1MCcgZmlsbD0nI2ZiNzE4NScgb3BhY2l0eT0nMC42NScvPgo8cmVjdCB4PSc0MjAnIHk9JzE1MCcgd2lkdGg9JzM2MCcgaGVpZ2h0PSczOCcgcng9JzE5JyBmaWxsPScjZmVkN2FhJy8+CjxyZWN0IHg9JzQyMCcgeT0nMjIwJyB3aWR0aD0nMzIwJyBoZWlnaHQ9JzI4JyByeD0nMTQnIGZpbGw9JyNmZWNhY2EnLz4KPHJlY3QgeD0nNDIwJyB5PScyNzAnIHdpZHRoPScyNjAnIGhlaWdodD0nMjgnIHJ4PScxNCcgZmlsbD0nI2ZlY2FjYScvPgo8cmVjdCB4PScxNDAnIHk9JzM5MCcgd2lkdGg9JzYyMCcgaGVpZ2h0PSc0MCcgcng9JzIwJyBmaWxsPScjZmI3MTg1JyBvcGFjaXR5PScwLjE4Jy8+Cjwvc3ZnPg==">
+        <div class="p">
+          <h3 id="y3">舞蹈 Dance</h3>
+          <p class="small" id="y3s">節奏協調｜每週六 14:00</p>
+          <button class="btn primary" onclick="quickPick('Dance')"><span id="b3">我要報名</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="booking" class="hidden">
+    <h2 id="bkTitle">報名表單</h2>
+    <p id="bkSub">Email 必須是 @gmail.com；報名成功後只會顯示姓名與電話</p>
+
+    <div class="card" style="padding:14px">
+      <div class="row">
+        <div>
+          <label id="lblCourse">選擇課程</label>
+          <select id="course">
+            <option value="">請選擇課程</option>
+            <option value="Yoga">瑜珈</option>
+            <option value="Boxing">拳擊</option>
+            <option value="Dance">舞蹈</option>
+          </select>
+        </div>
+        <div>
+          <label id="lblEmail">Gmail</label>
+          <input id="email" placeholder="example@gmail.com" autocomplete="email">
+          <div class="small" id="gmailHint">只接受 @gmail.com</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label id="lblName">姓名</label>
+          <input id="name" placeholder="王小明">
+        </div>
+        <div>
+          <label id="lblPhone">電話</label>
+          <input id="phone" placeholder="09xxxxxxxx" inputmode="tel">
+          <div class="small" id="phoneHint">範例：0912345678（僅數字）</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label id="lblAge">年齡</label>
+          <input id="age" placeholder="16" inputmode="numeric">
+        </div>
+        <div>
+          <label id="lblHeight">身高（cm）</label>
+          <input id="height" placeholder="165" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label id="lblWeight">體重（kg）</label>
+          <input id="weight" placeholder="55" inputmode="numeric">
+        </div>
+        <div>
+          <label id="lblNote">備註（可不填）</label>
+          <input id="note" placeholder="過敏/受傷狀況...（可留空）">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn primary" onclick="submitBooking()" id="submitBtn">送出報名</button>
+        <button class="btn" onclick="go('my')" id="toMyBtn">查看報名結果</button>
+      </div>
+
+      <div id="msg" class="alert" style="margin-top:12px" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="my" class="hidden">
+    <h2 id="mTitle">報名結果</h2>
+    <p id="mSub">為保護個資，這裡只顯示「姓名、電話、課程、時間」</p>
+    <table class="table">
+      <thead><tr><th id="thN">姓名</th><th id="thP">電話</th><th id="thC">課程</th><th id="thT">時間</th></tr></thead>
+      <tbody id="myTable"></tbody>
+    </table>
+  </section>
+
+  <section id="admin" class="hidden">
+    <h2 id="adTitle">管理後台</h2>
+    <p id="adSub">此頁為管理者查看；顯示完整報名資料（含身高體重年齡 Email）</p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Email</th><th id="athN">姓名</th><th id="athP">電話</th><th id="athA">年齡</th><th id="athH">身高</th><th id="athW">體重</th><th id="athC">課程</th><th id="athT">時間</th>
+        </tr>
+      </thead>
+      <tbody id="adminTable"></tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>© 2026 Sport Course Booking</footer>
+
+<script>
+let lang = localStorage.getItem('lang') || 'zh';
+
+const dict = {
+  zh: {
+    badge:"只允許 Gmail 報名", title:"運動課程報名系統", sub:"填寫基本資料完成報名；成功後僅顯示「姓名與電話」",
+    cTitle:"熱門課程", cSub:"請到「報名」頁填寫資料；Email 必須為 @gmail.com",
+    bkTitle:"報名表單", bkSub:"Email 必須是 @gmail.com；報名成功後只會顯示姓名與電話",
+    lblCourse:"選擇課程", lblEmail:"Gmail", lblName:"姓名", lblPhone:"電話", lblAge:"年齡", lblHeight:"身高（cm）", lblWeight:"體重（kg）", lblNote:"備註（可不填）",
+    submitBtn:"送出報名", toMyBtn:"查看報名結果",
+    mTitle:"報名結果", mSub:"為保護個資，這裡只顯示「姓名、電話、課程、時間」",
+    adTitle:"管理後台", adSub:"此頁為管理者查看；顯示完整報名資料（含身高體重年齡 Email）",
+    thN:"姓名", thP:"電話", thC:"課程", thT:"時間",
+    k1t:"課程類型", k2t:"Gmail 格式限制", k3t:"個資隱私顯示", k4t:"後台可查看",
+    y1:"瑜珈 Yoga", y1s:"伸展與核心｜每週二、四 19:00",
+    y2:"拳擊 Boxing", y2s:"燃脂訓練｜每週一、三 20:00",
+    y3:"舞蹈 Dance", y3s:"節奏協調｜每週六 14:00",
+    book:"我要報名",
+    gmailHint:"只接受 @gmail.com",
+    phoneHint:"範例：0912345678（僅數字）",
+    ok:"報名成功！已為你建立報名紀錄。",
+    need:"請把必填欄位都填好",
+    badGmail:"Email 必須是 @gmail.com（不能亂輸入）",
+    badPhone:"電話格式不正確（需 09 開頭、10 碼數字）",
+    badNum:"年齡/身高/體重需為合理數字",
+    pickCourse:"請選擇課程",
+    courseYoga:"瑜珈",
+    courseBoxing:"拳擊",
+    courseDance:"舞蹈",
+    none:"—"
+  },
+  en: {
+    badge:"Gmail-only booking", title:"Sport Course Booking", sub:"Submit your basic info; after success, only Name & Phone are shown.",
+    cTitle:"Popular Courses", cSub:"Go to “Booking” to submit your info. Email must be @gmail.com",
+    bkTitle:"Booking Form", bkSub:"Email must be @gmail.com. After booking, only Name & Phone will be shown.",
+    lblCourse:"Course", lblEmail:"Gmail", lblName:"Name", lblPhone:"Phone", lblAge:"Age", lblHeight:"Height (cm)", lblWeight:"Weight (kg)", lblNote:"Note (optional)",
+    submitBtn:"Submit Booking", toMyBtn:"View Result",
+    mTitle:"Booking Result", mSub:"For privacy, only Name, Phone, Course, Time are displayed here.",
+    adTitle:"Admin", adSub:"Admin view shows full details (Email/Age/Height/Weight).",
+    thN:"Name", thP:"Phone", thC:"Course", thT:"Time",
+    k1t:"Course Types", k2t:"Gmail Format Check", k3t:"Privacy Display", k4t:"Admin Dashboard",
+    y1:"Yoga", y1s:"Stretch & core | Tue/Thu 19:00",
+    y2:"Boxing", y2s:"Fat burn | Mon/Wed 20:00",
+    y3:"Dance", y3s:"Rhythm & coordination | Sat 14:00",
+    book:"Book Now",
+    gmailHint:"Only @gmail.com",
+    phoneHint:"Example: 0912345678 (digits only)",
+    ok:"Booking successful! Your record has been saved.",
+    need:"Please fill in all required fields",
+    badGmail:"Email must be @gmail.com (no random emails)",
+    badPhone:"Invalid phone (must start with 09, 10 digits)",
+    badNum:"Age/Height/Weight must be valid numbers",
+    pickCourse:"Select a course",
+    courseYoga:"Yoga",
+    courseBoxing:"Boxing",
+    courseDance:"Dance",
+    none:"—"
+  }
+};
+
+function setLang(l){
+  lang=l; localStorage.setItem('lang',l);
+  const d=dict[l];
+
+  const setText=(id, txt)=>{ const el=document.getElementById(id); if(el) el.textContent=txt; };
+
+  setText('badge', d.badge);
+  setText('title', d.title);
+  setText('sub', d.sub);
+  setText('cTitle', d.cTitle);
+  setText('cSub', d.cSub);
+  setText('bkTitle', d.bkTitle);
+  setText('bkSub', d.bkSub);
+  setText('lblCourse', d.lblCourse);
+  setText('lblEmail', d.lblEmail);
+  setText('lblName', d.lblName);
+  setText('lblPhone', d.lblPhone);
+  setText('lblAge', d.lblAge);
+  setText('lblHeight', d.lblHeight);
+  setText('lblWeight', d.lblWeight);
+  setText('lblNote', d.lblNote);
+  setText('submitBtn', d.submitBtn);
+  setText('toMyBtn', d.toMyBtn);
+  setText('mTitle', d.mTitle);
+  setText('mSub', d.mSub);
+  setText('adTitle', d.adTitle);
+  setText('adSub', d.adSub);
+  setText('thN', d.thN);
+  setText('thP', d.thP);
+  setText('thC', d.thC);
+  setText('thT', d.thT);
+
+  // Course cards
+  setText('y1', d.y1); setText('y1s', d.y1s);
+  setText('y2', d.y2); setText('y2s', d.y2s);
+  setText('y3', d.y3); setText('y3s', d.y3s);
+  setText('b1', d.book); setText('b2', d.book); setText('b3', d.book);
+
+  // Hints
+  setText('gmailHint', d.gmailHint);
+  setText('phoneHint', d.phoneHint);
+
+  // Update course dropdown labels (keep values)
+  const sel=document.getElementById('course');
+  if(sel){
+    const opt0=sel.querySelector('option[value=""]');
+    const o1=sel.querySelector('option[value="Yoga"]');
+    const o2=sel.querySelector('option[value="Boxing"]');
+    const o3=sel.querySelector('option[value="Dance"]');
+    if(opt0) opt0.textContent = d.pickCourse;
+    if(o1) o1.textContent = d.courseYoga;
+    if(o2) o2.textContent = d.courseBoxing;
+    if(o3) o3.textContent = d.courseDance;
+  }
+
+  setMsg("", "");
+  renderMy();
+  renderAdmin();
+}
+setLang(lang);
+
+function go(id){
+  document.querySelectorAll('.container section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='my') renderMy();
+  if(id==='admin') renderAdmin();
+}
+
+function setMsg(text, type){
+  const el=document.getElementById('msg');
+  el.className="alert" + (type?(" "+type):"");
+  el.textContent=text||"";
+}
+
+function isGmail(v){
+  const e=(v||"").trim().toLowerCase();
+  return /^[a-z0-9._%+-]+@gmail\.com$/.test(e);
+}
+function isPhone(v){
+  const p=(v||"").trim();
+  return /^09\d{8}$/.test(p);
+}
+function toInt(v){ return parseInt(String(v||"").trim(), 10); }
+function courseLabel(course){
+  const d=dict[lang];
+  if(course==="Yoga") return d.courseYoga;
+  if(course==="Boxing") return d.courseBoxing;
+  if(course==="Dance") return d.courseDance;
+  return course||"";
+}
+
+function quickPick(courseName){
+  document.getElementById('course').value=courseName;
+  go('booking');
+}
+
+function submitBooking(){
+  const d=dict[lang];
+  const c=(document.getElementById('course').value||"").trim();
+  const e=(document.getElementById('email').value||"").trim().toLowerCase();
+  const n=(document.getElementById('name').value||"").trim();
+  const p=(document.getElementById('phone').value||"").trim();
+  const a=toInt(document.getElementById('age').value);
+  const h=toInt(document.getElementById('height').value);
+  const w=toInt(document.getElementById('weight').value);
+  const note=(document.getElementById('note').value||"").trim();
+
+  if(!c || !e || !n || !p || !document.getElementById('age').value || !document.getElementById('height').value || !document.getElementById('weight').value){
+    setMsg(d.need, "bad"); return;
+  }
+  if(!isGmail(e)){ setMsg(d.badGmail, "bad"); return; }
+  if(!isPhone(p)){ setMsg(d.badPhone, "bad"); return; }
+  if(!(a>=8 && a<=90) || !(h>=80 && h<=230) || !(w>=20 && w<=250)){ setMsg(d.badNum, "bad"); return; }
+
+  const list = JSON.parse(localStorage.getItem('bookings')||'[]');
+  const now = new Date().toLocaleString();
+  const rec = { email:e, name:n, phone:p, age:a, height:h, weight:w, course:c, note:note, time:now };
+  list.push(rec);
+  localStorage.setItem('bookings', JSON.stringify(list));
+  localStorage.setItem('current', JSON.stringify({ email:e, phone:p }));
+
+  setMsg(d.ok, "ok");
+  go('my');
+}
+
+function renderMy(){
+  const d=dict[lang];
+  const list = JSON.parse(localStorage.getItem('bookings')||'[]');
+  const cur = JSON.parse(localStorage.getItem('current')||'null');
+  let mine = list;
+  if(cur && cur.email) mine = list.filter(x=>x.email===cur.email && x.phone===cur.phone);
+  const body = mine.map(x=>`
+    <tr>
+      <td>${escapeHtml(x.name)}</td>
+      <td>${escapeHtml(x.phone)}</td>
+      <td>${escapeHtml(courseLabel(x.course))}</td>
+      <td>${escapeHtml(x.time)}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="4">${d.none}</td></tr>`;
+  document.getElementById('myTable').innerHTML = body;
+}
+
+function renderAdmin(){
+  const d=dict[lang];
+  const list = JSON.parse(localStorage.getItem('bookings')||'[]');
+  const body = list.map(x=>`
+    <tr>
+      <td>${escapeHtml(x.email)}</td>
+      <td>${escapeHtml(x.name)}</td>
+      <td>${escapeHtml(x.phone)}</td>
+      <td>${escapeHtml(String(x.age))}</td>
+      <td>${escapeHtml(String(x.height))}</td>
+      <td>${escapeHtml(String(x.weight))}</td>
+      <td>${escapeHtml(courseLabel(x.course))}</td>
+      <td>${escapeHtml(x.time)}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="8">${d.none}</td></tr>`;
+  document.getElementById('adminTable').innerHTML = body;
+}
+
+function escapeHtml(s){
+  return String(s||"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function resetAll(){
+  if(!confirm("確定要清除所有報名資料嗎？")) return;
+  localStorage.removeItem('bookings');
+  localStorage.removeItem('current');
+  setMsg("", "");
+  renderMy();
+  renderAdmin();
+  go('home');
+}
+</script>
+</body>
+</html>
