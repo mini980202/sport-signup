@@ -504,5 +504,57 @@ function resetAll(){
 go('home');
 }
 </script>
+
+<script>
+/* 2026-01-06: 強化管理者入口（不讓同學看到） */
+(function(){
+  function safeGet(id){ return document.getElementById(id); }
+
+  // 1) URL 方式：在網址最後加 #admin 或 ?admin=1
+  try{
+    var sp = new URLSearchParams(location.search);
+    if(location.hash === '#admin' || sp.get('admin') === '1'){
+      // 清掉 hash，避免同學複製時看到
+      if(location.hash === '#admin') history.replaceState(null,'',location.pathname + location.search);
+      setTimeout(function(){ try{ go('admin'); }catch(e){} }, 50);
+    }
+  }catch(e){}
+
+  // 2) 長按 LOGO 3 秒（桌機/手機都可）
+  var brand = safeGet('brandLogo') || document.querySelector('.brand, .logo, header .title, header h1');
+  if(brand){
+    var t=null;
+    var start = function(e){
+      if(t) clearTimeout(t);
+      t=setTimeout(function(){ try{ go('admin'); }catch(e){} }, 3000);
+    };
+    var end = function(e){ if(t){ clearTimeout(t); t=null; } };
+    brand.addEventListener('mousedown', start);
+    brand.addEventListener('touchstart', start, {passive:true});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(function(ev){ brand.addEventListener(ev,end); });
+  }
+
+  // 3) 如果頁尾點不到，就補一個隱形區塊（同學看不到）
+  var footer = safeGet('footerCopy') || document.querySelector('footer');
+  if(footer && !safeGet('adminHotspot')){
+    var hs = document.createElement('span');
+    hs.id = 'adminHotspot';
+    hs.setAttribute('aria-hidden','true');
+    hs.style.cssText = 'display:inline-block;width:22px;height:22px;opacity:0;cursor:pointer;';
+    footer.appendChild(hs);
+    var clicks=0, timer=null;
+    hs.addEventListener('click', function(){
+      clicks++;
+      if(timer) clearTimeout(timer);
+      timer=setTimeout(function(){ clicks=0; }, 900);
+      if(clicks>=5){
+        clicks=0;
+        try{ go('admin'); }catch(e){}
+      }
+    });
+  }
+})();
+</script>
+
 </body>
 </html>
