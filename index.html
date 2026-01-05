@@ -55,7 +55,7 @@ footer{padding:22px;text-align:center;color:var(--muted)}
     <a href="#" onclick="go('courses')">課程</a>
     <a href="#" onclick="go('booking')">報名</a>
     <a href="#" onclick="go('my')">報名結果</a>
-    <a href="#" onclick="go('admin')">後台</a>
+    
     <span class="spacer"></span>
     <button class="btn" onclick="setLang('zh')">中</button>
     <button class="btn" onclick="setLang('en')">EN</button>
@@ -194,11 +194,12 @@ footer{padding:22px;text-align:center;color:var(--muted)}
 
 </div>
 
-<footer>© 2026 Sport Course Booking</footer>
+<footer id="footerMark">© 2026 Sport Course Booking</footer>
 
 <script>
 let lang = localStorage.getItem('lang') || 'zh';
 
+const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbx54woFzjARSQnes6UaqPo6mWLo75Q_0PPzO75R1dp4cOZBrTa7fY91ZVAyTIvuTvuu/exec";
 const dict = {
   zh: {
     badge:"只允許 Gmail 報名", title:"運動課程報名系統", sub:"填寫基本資料完成報名；成功後僅顯示「姓名與電話」",
@@ -217,6 +218,7 @@ const dict = {
     gmailHint:"只接受 @gmail.com",
     phoneHint:"範例：0912345678（僅數字）",
     ok:"報名成功！已為你建立報名紀錄。",
+    cloudFail:"已送出報名，但雲端寫入可能失敗；請稍後確認試算表。",
     need:"請把必填欄位都填好",
     badGmail:"Email 必須是 @gmail.com（不能亂輸入）",
     badPhone:"電話格式不正確（需 09 開頭、10 碼數字）",
@@ -244,6 +246,7 @@ const dict = {
     gmailHint:"Only @gmail.com",
     phoneHint:"Example: 0912345678 (digits only)",
     ok:"Booking successful! Your record has been saved.",
+    cloudFail:"Submitted, but cloud save may have failed. Please check the spreadsheet later.",
     need:"Please fill in all required fields",
     badGmail:"Email must be @gmail.com (no random emails)",
     badPhone:"Invalid phone (must start with 09, 10 digits)",
@@ -317,12 +320,33 @@ function setLang(l){
 }
 setLang(lang);
 
-function go(id){
-  document.querySelectorAll('.container section').forEach(s=>s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-  if(id==='my') renderMy();
-  if(id==='admin') renderAdmin();
+const ADMIN_PASS = "admin1234"; // ← 你要改密碼就改這裡（同學不知道就看不到後台）
+function isAdmin(){ return sessionStorage.getItem('admin_ok') === '1'; }
+function requireAdmin(){
+  if(isAdmin()) return true;
+  const pw = prompt("管理者後台：請輸入密碼");
+  if(pw === ADMIN_PASS){
+    sessionStorage.setItem('admin_ok','1');
+    return true;
+  }
+  alert("密碼錯誤，無法進入後台。");
+  return false;
 }
+
+function go(id){
+  // 後台保護：沒有密碼就不給進
+  if(id === 'admin' && !requireAdmin()){
+    id = 'home';
+  }
+
+  document.querySelectorAll('.container section').forEach(s=>s.classList.add('hidden'));
+  const target = document.getElementById(id);
+  if(target) target.classList.remove('hidden');
+
+  if(id === 'my') renderMy();
+  if(id === 'admin' && isAdmin()) renderAdmin();
+}
+
 
 function setMsg(text, type){
   const el=document.getElementById('msg');
@@ -352,7 +376,7 @@ function quickPick(courseName){
   go('booking');
 }
 
-function submitBooking(){
+async function submitBooking(){
   const d=dict[lang];
   const c=(document.getElementById('course').value||"").trim();
   const e=(document.getElementById('email').value||"").trim().toLowerCase();
@@ -370,14 +394,35 @@ function submitBooking(){
   if(!isPhone(p)){ setMsg(d.badPhone, "bad"); return; }
   if(!(a>=8 && a<=90) || !(h>=80 && h<=230) || !(w>=20 && w<=250)){ setMsg(d.badNum, "bad"); return; }
 
-  const list = JSON.parse(localStorage.getItem('bookings')||'[]');
   const now = new Date().toLocaleString();
   const rec = { email:e, name:n, phone:p, age:a, height:h, weight:w, course:c, note:note, time:now };
+
+  // 1) 先送到雲端（Google Sheet / Apps Script）
+  try {
+    // no-cors：避免 CORS 擋住（仍可把資料送到 GAS）
+    await fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(rec)
+    });
+  } catch(err) {
+    // 雲端失敗也先繼續（至少不會卡住），但會提示
+    console.warn('Cloud save failed:', err);
+    setMsg(d.cloudFail, "bad");
+    // 仍繼續存本機與跳轉，避免同學卡住
+  }
+
+  // 2) 再存本機（讓「我的報名 / 後台」頁能立刻看到）
+  const list = JSON.parse(localStorage.getItem('bookings')||'[]');
   list.push(rec);
   localStorage.setItem('bookings', JSON.stringify(list));
   localStorage.setItem('current', JSON.stringify({ email:e, phone:p }));
 
-  setMsg(d.ok, "ok");
+  // 若剛剛沒出錯提示，就顯示成功
+  if(!document.getElementById('msg').classList.contains('bad')) {
+    setMsg(d.ok, "ok");
+  }
   go('my');
 }
 
@@ -399,6 +444,12 @@ function renderMy(){
 }
 
 function renderAdmin(){
+  if(typeof isAdmin==='function' && !isAdmin()){
+    alert('此區僅管理者可查看');
+    go('home');
+    return;
+  }
+
   const d=dict[lang];
   const list = JSON.parse(localStorage.getItem('bookings')||'[]');
   const body = list.map(x=>`
@@ -432,7 +483,25 @@ function resetAll(){
   setMsg("", "");
   renderMy();
   renderAdmin();
-  go('home');
+  // 連點頁尾 © 5 下 → 進入後台（會要求輸入密碼）
+(function(){
+  let clicks = 0;
+  let last = 0;
+  const el = document.getElementById('footerMark');
+  if(!el) return;
+  el.addEventListener('click', ()=>{
+    const now = Date.now();
+    if(now - last > 1500) clicks = 0;
+    last = now;
+    clicks++;
+    if(clicks >= 5){
+      clicks = 0;
+      go('admin');
+    }
+  });
+})();
+
+go('home');
 }
 </script>
 </body>
